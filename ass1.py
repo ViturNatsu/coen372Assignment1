@@ -1,6 +1,7 @@
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, accuracy_score
+from sklearn.model_selection import GridSearchCV
 import matplotlib.pyplot as plt
 
 
@@ -72,7 +73,6 @@ def train_and_test_base_mlp(X_train, X_test, y_train, y_test, dataset_name):
 def train_and_test_top_mlp(X_train, X_test, y_train, y_test, dataset_name):
     # Create and train the top MLP model using grid search
     # Experiment with hyperparameters (activation function, network architecture, solver)
-    from sklearn.model_selection import GridSearchCV
 
     param_grid = {
         'activation': ['logistic', 'tanh', 'relu'],
