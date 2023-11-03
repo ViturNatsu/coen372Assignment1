@@ -3,7 +3,19 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, accuracy_score
 from sklearn.model_selection import GridSearchCV
 import matplotlib.pyplot as plt
+import pandas as pd
 
+
+
+# Method 1: Convert the categorical variables into one-hot encoded vectors
+def method1_hotVector(datafram,columns):
+    return pd.get_dummies(datafram, columns)
+
+
+# Method 2: Convert to categories manually
+def method2_manual(dataframe, column):
+    dataframe[column] = dataframe[column].astype('category')
+    return dataframe[column].cat.codes
 
 def train_and_test_base_decision_tree(X_train, X_test, y_train, y_test, dataset_name):
     # Create and train the base Decision Tree model
@@ -97,4 +109,44 @@ def train_and_test_top_mlp(X_train, X_test, y_train, y_test, dataset_name):
 
 
 if __name__ == "__main__":
-# Load the data, split it, and call the appropriate training and testing functions
+    # Load the penguins dataset
+    df_penguins = pd.read_csv('penguins.csv')
+
+    # Display the first few rows of the dataset
+    print(df_penguins.head())
+
+    columns =['species', 'sex', 'island']
+
+    # Method 1: Convert these features into 1-hot vectors
+    df_penguins_encoder = method1_hotVector(df_penguins,columns)
+
+    # Method 2: Convert to categories manually
+    for column in columns:
+        df_penguins[column] = method2_manual(df_penguins, column)
+
+    # Load the penguins dataset
+    df_abalone = pd.read_csv('abalone.csv')
+
+    # Display the first few rows of the dataset
+    print(df_abalone.head())
+
+
+    # Method 1: Convert these features into 1-hot vectors
+    df_abalone_encoder = method1_hotVector(df_abalone,'Type')
+
+    # Method 2: Convert to categories manually
+    df_abalone['Type'] = method2_manual(df_abalone, 'Type')
+
+
+    # Display the first few rows to verify the changes
+    print("Method 1:")
+    print(df_penguins_encoder.head())
+    print("\nMethod 2:")
+    print(df_penguins.head())
+
+    # Display the first few rows to verify the changes
+    print("Method 1:")
+    print(df_abalone_encoder.head())
+    print("\nMethod 2:")
+    print(df_abalone.head())
+
