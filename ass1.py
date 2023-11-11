@@ -6,6 +6,7 @@ from sklearn.metrics import classification_report, accuracy_score, confusion_mat
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def save_confusion_matrix_plot(conf_matrix, title, filename):
     plt.figure(figsize=(6, 4))
     plt.imshow(conf_matrix, interpolation='nearest', cmap=plt.cm.Blues)
@@ -20,22 +21,40 @@ def save_confusion_matrix_plot(conf_matrix, title, filename):
     plt.savefig(filename)
 
 
-
 penguin_data = pd.read_csv('penguins.csv')
 abalone_data = pd.read_csv('abalone.csv')
 
+# Print abalone dataset's first 5 rows
 print(abalone_data.head())
 print(abalone_data.columns)
 
+# Print Penguin dataset's first 5 rows
+print(penguin_data.head())
+print(penguin_data.columns)
+
+# -METHOD 1-  One-hot vector
 penguin_data = pd.get_dummies(penguin_data, columns=['island', 'sex'])
 
+# -METHOD2-  CATEGORY FOR CONVERTING CATEGORIES
+# mapping_islands = {'Biscoe': 0, 'Dream': 1, 'Torgersen': 11}
+# mapping_sex = {'MALE': 0, 'FEMALE': 1}
+#
+# penguin_data['island'] = penguin_data['island'].map(mapping_islands)
+# penguin_data['sex'] = penguin_data['sex'].map(mapping_sex)
+# penguin_data.head()
+#
+
 penguin_class_distribution = penguin_data['species'].value_counts()
-penguin_class_distribution.plot(kind='bar', title='Penguin Class Distribution')
+penguin_class_percentages = (penguin_class_distribution / len(penguin_data)) * 100
+penguin_class_percentages.plot(kind='bar', title='Penguin Class Distribution', color='blue')
 plt.savefig('penguin-classes.png')
+plt.close()
 
 abalone_class_distribution = abalone_data['Type'].value_counts()
-abalone_class_distribution.plot(kind='bar', title='Abalone Class Distribution')
+abalone_class_percentages = (abalone_class_distribution / len(abalone_data)) * 100
+abalone_class_percentages.plot(kind='bar', title='Abalone Class Distribution', color='red')
 plt.savefig('abalone-classes.png')
+plt.close()
 
 penguin_X = penguin_data.drop('species', axis=1)
 penguin_y = penguin_data['species']
@@ -47,7 +66,6 @@ penguin_X_train, penguin_X_test, penguin_y_train, penguin_y_test = train_test_sp
 abalone_X_train, abalone_X_test, abalone_y_train, abalone_y_test = train_test_split(abalone_X, abalone_y, test_size=0.2,
                                                                                     random_state=42)
 
-
 penguin_base_dt = DecisionTreeClassifier()
 penguin_base_dt.fit(penguin_X_train, penguin_y_train)
 plot_tree(penguin_base_dt, filled=True, rounded=True, feature_names=penguin_X.columns, class_names=penguin_y.unique())
@@ -57,7 +75,6 @@ abalone_base_dt = DecisionTreeClassifier(max_depth=3)
 abalone_base_dt.fit(abalone_X_train, abalone_y_train)
 plot_tree(abalone_base_dt, filled=True, rounded=True, feature_names=abalone_X.columns, class_names=abalone_y.unique())
 plt.savefig('abalone-base-dt.png')
-
 
 param_grid = {
     'criterion': ['gini', 'entropy'],
@@ -76,13 +93,11 @@ best_abalone_dt = grid_search_abalone_dt.best_estimator_
 plot_tree(best_abalone_dt, filled=True, rounded=True, feature_names=abalone_X.columns, class_names=abalone_y.unique())
 plt.savefig('abalone-top-dt.png')
 
-
 penguin_base_mlp = MLPClassifier(hidden_layer_sizes=(100, 100), activation='logistic', solver='sgd', random_state=42)
 penguin_base_mlp.fit(penguin_X_train, penguin_y_train)
 
 abalone_base_mlp = MLPClassifier(hidden_layer_sizes=(100, 100), activation='logistic', solver='sgd', random_state=42)
 abalone_base_mlp.fit(abalone_X_train, abalone_y_train)
-
 
 param_grid_mlp = {
     'activation': ['logistic', 'tanh', 'relu'],
@@ -96,7 +111,6 @@ best_penguin_mlp = grid_search_penguin_mlp.best_estimator_
 grid_search_abalone_mlp = GridSearchCV(MLPClassifier(), param_grid_mlp, scoring='accuracy', cv=5)
 grid_search_abalone_mlp.fit(abalone_X_train, abalone_y_train)
 best_abalone_mlp = grid_search_abalone_mlp.best_estimator_
-
 
 
 def save_model_performance(model, X_test, y_test, dataset_name, model_name, hyperparameters, output_file):
@@ -121,10 +135,8 @@ def save_model_performance(model, X_test, y_test, dataset_name, model_name, hype
         f.write('-' * 40 + '\n')
 
 
-
 penguin_performance_file = 'penguin-performance.txt'
 abalone_performance_file = 'abalone-performance.txt'
-
 
 for i in range(5):
     save_model_performance(penguin_base_dt, penguin_X_test, penguin_y_test, 'Penguin', 'Base-DT', 'Default',
@@ -144,7 +156,6 @@ for i in range(5):
                            abalone_performance_file)
     save_model_performance(best_abalone_mlp, abalone_X_test, abalone_y_test, 'Abalone', 'Top-MLP',
                            grid_search_abalone_mlp.best_params_, abalone_performance_file)
-
 
 
 def calculate_average_performance(dataset_name, model_name, num_iterations, performance_file):
