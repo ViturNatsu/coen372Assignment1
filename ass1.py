@@ -22,6 +22,19 @@ def save_confusion_matrix_plot(conf_matrix, title, filename):
     plt.savefig(filename)
     plt.close()
 
+accuracy_average = []
+macro_f1_average = []
+weighted_f1_average = []
+rows = 2
+cols = 4
+for i in range(rows):
+    rowz = []
+    for j in range(cols):
+        rowz.append([])
+    accuracy_average.append(rowz)
+    macro_f1_average.append(rowz)
+    weighted_f1_average.append(rowz)
+
 def save_model_performance(iteration, letter, model, X_test, y_test, dataset_name, model_name, hyperparameters,
                            output_file):
     y_pred = model.predict(X_test)
@@ -230,19 +243,6 @@ penguin_top_mlp = grid_search_penguin_topmlp.best_estimator_
 grid_search_abalone_mlp = GridSearchCV(MLPClassifier(), param_grid_mlp, scoring='accuracy', cv=5, n_jobs=-1)
 grid_search_abalone_mlp.fit(abalone_X_train, abalone_y_train)
 abalone_top_mlp = grid_search_abalone_mlp.best_estimator_
-
-accuracy_average = []
-macro_f1_average = []
-weighted_f1_average = []
-rows = 2
-cols = 4
-for i in range(rows):
-    rowz = []
-    for j in range(cols):
-        rowz.append([])
-    accuracy_average.append(rowz)
-    macro_f1_average.append(rowz)
-    weighted_f1_average.append(rowz)
 
 penguin_performance_file = 'penguin-performance.txt'
 abalone_performance_file = 'abalone-performance.txt'
