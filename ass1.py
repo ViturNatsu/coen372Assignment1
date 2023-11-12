@@ -20,6 +20,7 @@ def save_confusion_matrix_plot(conf_matrix, title, filename):
     plt.xlabel('Predicted label')
     plt.tight_layout()
     plt.savefig(filename)
+    plt.close()
 
 
 penguin_data = pd.read_csv('penguins.csv')
@@ -145,6 +146,7 @@ def save_model_performance(iteration, letter, model, X_test, y_test, dataset_nam
         f.write(f'Macro-average F1: {macro_f1}\n')
         f.write(f'Weighted-average F1: {weighted_f1}\n')
         # f.write('-' * 40 + '\n')
+    f.close()
 
 
 penguin_performance_file = 'penguin-performance.txt'
@@ -193,6 +195,7 @@ def calculate_average_performance(dataset_name, model_name, num_iterations, perf
             accuracy_list.append(accuracy)
             macro_f1_list.append(macro_f1)
             weighted_f1_list.append(weighted_f1)
+    f.close()
 
     avg_accuracy = np.mean(accuracy_list)
     avg_macro_f1 = np.mean(macro_f1_list)
@@ -206,6 +209,7 @@ def calculate_average_performance(dataset_name, model_name, num_iterations, perf
         f.write(f'Average Accuracy: {avg_accuracy} (Variance: {accuracy_var})\n')
         f.write(f'Average Macro-average F1: {avg_macro_f1} (Variance: {macro_f1_var})\n')
         f.write(f'Average Weighted-average F1: {avg_weighted_f1} (Variance: {weighted_f1_var})\n')
+    f.close()
 
 
 calculate_average_performance('Penguin', 'Base-DT', 5, penguin_performance_file)
