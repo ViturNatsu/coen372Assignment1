@@ -127,7 +127,7 @@ def save_model_performance(iteration, letter, model, X_test, y_test, dataset_nam
     y_pred = model.predict(X_test)
     conf_matrix = confusion_matrix(y_test, y_pred)
     save_confusion_matrix_plot(conf_matrix, f'{dataset_name} - {model_name}',
-                               f'{dataset_name.lower()}-{model_name}.png')
+                               f'{dataset_name.lower()}-{model_name}-confusion_matrix.png')
     classification_rep = classification_report(y_test, y_pred, target_names=y_test.unique(), output_dict=True)
     accuracy = accuracy_score(y_test, y_pred)
     macro_f1 = classification_rep['macro avg']['f1-score']
@@ -181,10 +181,15 @@ def calculate_average_performance(dataset_name, model_name, num_iterations, perf
         lines = f.read().splitlines()
         for i in range(num_iterations):
             model_info = f'{model_name} - Default' if i == 0 else f'{model_name} - {lines[i * 11 + 1][len(model_name) + 2:]}'
-            accuracy = float(lines[i * 11 + 5][len('Accuracy: ')])
-            macro_f1 = float(lines[i * 11 + 6][len('Macro-average F1: '):])
-            weighted_f1 = float(lines[i * 11 + 7][len('Weighted-average F1: '):])
 
+            try:
+                accuracy = float(lines[i * 11 + 5][len('Accuracy: '):])
+                macro_f1 = float(lines[i * 11 + 6][len('Macro-average F1: '):])
+                weighted_f1 = float(lines[i * 11 + 7][len('Weighted-average F1: '):])
+            except ValueError:
+                accuracy = 0
+                macro_f1 = 0
+                weighted_f1 = 0
             accuracy_list.append(accuracy)
             macro_f1_list.append(macro_f1)
             weighted_f1_list.append(weighted_f1)
