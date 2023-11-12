@@ -22,6 +22,116 @@ def save_confusion_matrix_plot(conf_matrix, title, filename):
     plt.savefig(filename)
     plt.close()
 
+def save_model_performance(iteration, letter, model, X_test, y_test, dataset_name, model_name, hyperparameters,
+                           output_file):
+    y_pred = model.predict(X_test)
+    conf_matrix = confusion_matrix(y_test, y_pred)
+    save_confusion_matrix_plot(conf_matrix, f'{dataset_name} - {model_name}',
+                               f'{dataset_name.lower()}-{model_name}-confusion_matrix.png')
+    classification_rep = classification_report(y_test, y_pred, target_names=y_test.unique(), output_dict=True)
+    accuracy = accuracy_score(y_test, y_pred)
+    macro_f1 = classification_rep['macro avg']['f1-score']
+    weighted_f1 = classification_rep['weighted avg']['f1-score']
+    iteration += 1
+
+    if dataset_name == 'Penguin':
+        row = 0
+        if model_name == 'Base-DT':
+            col = 0
+
+        elif model_name == 'Top-DT':
+            col = 1
+
+        elif model_name == 'Base-MLP':
+            col = 2
+
+        elif model_name == 'Top-MLP':
+            col = 3
+
+    elif dataset_name == 'Abalone':
+        row = 1
+        if model_name == 'Base-DT':
+            col = 0
+
+        elif model_name == 'Top-DT':
+            col = 1
+
+        elif model_name == 'Base-MLP':
+            col = 2
+
+        elif model_name == 'Top-MLP':
+            col = 3
+
+    else:
+        row = 0
+        col = 0
+
+    accuracy_average[row][col].append(accuracy)
+    macro_f1_average[row][col].append(macro_f1)
+    weighted_f1_average[row][col].append(weighted_f1)
+
+    with open(output_file, 'a') as f:
+        f.write('-' * 20 + 'Iteration: ' + str(iteration) + ' (' + str(letter) + ') ' + '---- ' + str(
+            model_name) + '' + '-' * 20 + '\n')
+        f.write(f'{model_name} - {hyperparameters}\n')
+        f.write('Confusion Matrix:\n')
+        f.write(str(conf_matrix) + '\n')
+        f.write('Classification Report:\n')
+        f.write(str(classification_rep) + '\n')
+        f.write(f'Accuracy: {accuracy}\n')
+        f.write(f'Macro-average F1: {macro_f1}\n')
+        f.write(f'Weighted-average F1: {weighted_f1}\n\n')
+        # f.write('-' * 40 + '\n')
+    f.close()
+
+def calculate_average_performance(dataset_name, model_name, performance_file):
+    if dataset_name == 'Penguin':
+        row = 0
+        if model_name == 'Base-DT':
+            col = 0
+
+        elif model_name == 'Top-DT':
+            col = 1
+
+        elif model_name == 'Base-MLP':
+            col = 2
+
+        elif model_name == 'Top-MLP':
+            col = 3
+
+    elif dataset_name == 'Abalone':
+        row = 1
+        if model_name == 'Base-DT':
+            col = 0
+
+        elif model_name == 'Top-DT':
+            col = 1
+
+        elif model_name == 'Base-MLP':
+            col = 2
+
+        elif model_name == 'Top-MLP':
+            col = 3
+
+    else:
+        row = 0
+        col = 0
+
+    avg_accuracy = np.mean(accuracy_average[row][col])
+    avg_macro_f1 = np.mean(macro_f1_average[row][col])
+    avg_weighted_f1 = np.mean(weighted_f1_average[row][col])
+
+    accuracy_var = np.var(accuracy_average[row][col])
+    macro_f1_var = np.var(macro_f1_average[row][col])
+    weighted_f1_var = np.var(weighted_f1_average[row][col])
+
+    with open(performance_file, 'a') as f:
+        f.write(f'Average Performance using {model_name}\n')
+        f.write(f'Average Accuracy: {avg_accuracy} (Variance: {accuracy_var})\n')
+        f.write(f'Average Macro-average F1: {avg_macro_f1} (Variance: {macro_f1_var})\n')
+        f.write(f'Average Weighted-average F1: {avg_weighted_f1} (Variance: {weighted_f1_var})\n\n')
+    f.close()
+
 
 penguin_data = pd.read_csv('penguins.csv')
 abalone_data = pd.read_csv('abalone.csv')
@@ -44,7 +154,6 @@ penguin_data = pd.get_dummies(penguin_data, columns=['island', 'sex'])
 # penguin_data['island'] = penguin_data['island'].map(mapping_islands)
 # penguin_data['sex'] = penguin_data['sex'].map(mapping_sex)
 # penguin_data.head()
-
 
 penguin_class_distribution = penguin_data['species'].value_counts()
 penguin_class_percentages = (penguin_class_distribution / len(penguin_data)) * 100
@@ -122,32 +231,18 @@ grid_search_abalone_mlp = GridSearchCV(MLPClassifier(), param_grid_mlp, scoring=
 grid_search_abalone_mlp.fit(abalone_X_train, abalone_y_train)
 abalone_top_mlp = grid_search_abalone_mlp.best_estimator_
 
-
-def save_model_performance(iteration, letter, model, X_test, y_test, dataset_name, model_name, hyperparameters,
-                           output_file):
-    y_pred = model.predict(X_test)
-    conf_matrix = confusion_matrix(y_test, y_pred)
-    save_confusion_matrix_plot(conf_matrix, f'{dataset_name} - {model_name}',
-                               f'{dataset_name.lower()}-{model_name}-confusion_matrix.png')
-    classification_rep = classification_report(y_test, y_pred, target_names=y_test.unique(), output_dict=True)
-    accuracy = accuracy_score(y_test, y_pred)
-    macro_f1 = classification_rep['macro avg']['f1-score']
-    weighted_f1 = classification_rep['weighted avg']['f1-score']
-    iteration += 1
-    with open(output_file, 'a') as f:
-        f.write('-' * 20 + 'Iteration: ' + str(iteration) + ' (' + str(letter) + ') ' + '---- ' + str(
-            model_name) + '' + '-' * 20 + '\n')
-        f.write(f'{model_name} - {hyperparameters}\n')
-        f.write('Confusion Matrix:\n')
-        f.write(str(conf_matrix) + '\n')
-        f.write('Classification Report:\n')
-        f.write(str(classification_rep) + '\n')
-        f.write(f'Accuracy: {accuracy}\n')
-        f.write(f'Macro-average F1: {macro_f1}\n')
-        f.write(f'Weighted-average F1: {weighted_f1}\n')
-        # f.write('-' * 40 + '\n')
-    f.close()
-
+accuracy_average = []
+macro_f1_average = []
+weighted_f1_average = []
+rows = 2
+cols = 4
+for i in range(rows):
+    rowz = []
+    for j in range(cols):
+        rowz.append([])
+    accuracy_average.append(rowz)
+    macro_f1_average.append(rowz)
+    weighted_f1_average.append(rowz)
 
 penguin_performance_file = 'penguin-performance.txt'
 abalone_performance_file = 'abalone-performance.txt'
@@ -173,51 +268,12 @@ for i in range(5):
     save_model_performance(i, 'D', abalone_top_mlp, abalone_X_test, abalone_y_test, 'Abalone', 'Top-MLP',
                            grid_search_abalone_mlp.best_params_, abalone_performance_file)
 
+calculate_average_performance('Penguin', 'Base-DT', penguin_performance_file)
+calculate_average_performance('Penguin', 'Top-DT', penguin_performance_file)
+calculate_average_performance('Penguin', 'Base-MLP', penguin_performance_file)
+calculate_average_performance('Penguin', 'Top-MLP', penguin_performance_file)
 
-def calculate_average_performance(dataset_name, model_name, num_iterations, performance_file):
-    accuracy_list = []
-    macro_f1_list = []
-    weighted_f1_list = []
-
-    with open(performance_file, 'r') as f:
-        lines = f.read().splitlines()
-        for i in range(num_iterations):
-            model_info = f'{model_name} - Default' if i == 0 else f'{model_name} - {lines[i * 11 + 1][len(model_name) + 2:]}'
-
-            try:
-                accuracy = float(lines[i * 11 + 5][len('Accuracy: '):])
-                macro_f1 = float(lines[i * 11 + 6][len('Macro-average F1: '):])
-                weighted_f1 = float(lines[i * 11 + 7][len('Weighted-average F1: '):])
-            except ValueError:
-                accuracy = 0
-                macro_f1 = 0
-                weighted_f1 = 0
-            accuracy_list.append(accuracy)
-            macro_f1_list.append(macro_f1)
-            weighted_f1_list.append(weighted_f1)
-    f.close()
-
-    avg_accuracy = np.mean(accuracy_list)
-    avg_macro_f1 = np.mean(macro_f1_list)
-    avg_weighted_f1 = np.mean(weighted_f1_list)
-
-    accuracy_var = np.var(accuracy_list)
-    macro_f1_var = np.var(macro_f1_list)
-    weighted_f1_var = np.var(weighted_f1_list)
-
-    with open(performance_file, 'a') as f:
-        f.write(f'Average Accuracy: {avg_accuracy} (Variance: {accuracy_var})\n')
-        f.write(f'Average Macro-average F1: {avg_macro_f1} (Variance: {macro_f1_var})\n')
-        f.write(f'Average Weighted-average F1: {avg_weighted_f1} (Variance: {weighted_f1_var})\n')
-    f.close()
-
-
-calculate_average_performance('Penguin', 'Base-DT', 5, penguin_performance_file)
-calculate_average_performance('Penguin', 'Top-DT', 5, penguin_performance_file)
-calculate_average_performance('Penguin', 'Base-MLP', 5, penguin_performance_file)
-calculate_average_performance('Penguin', 'Top-MLP', 5, penguin_performance_file)
-
-calculate_average_performance('Abalone', 'Base-DT', 5, abalone_performance_file)
-calculate_average_performance('Abalone', 'Top-DT', 5, abalone_performance_file)
-calculate_average_performance('Abalone', 'Base-MLP', 5, abalone_performance_file)
-calculate_average_performance('Abalone', 'Top-MLP', 5, abalone_performance_file)
+calculate_average_performance('Abalone', 'Base-DT', abalone_performance_file)
+calculate_average_performance('Abalone', 'Top-DT', abalone_performance_file)
+calculate_average_performance('Abalone', 'Base-MLP', abalone_performance_file)
+calculate_average_performance('Abalone', 'Top-MLP', abalone_performance_file)
