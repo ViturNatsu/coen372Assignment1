@@ -117,7 +117,7 @@ def save_model_performance(model, X_test, y_test, dataset_name, model_name, hype
     y_pred = model.predict(X_test)
     conf_matrix = confusion_matrix(y_test, y_pred)
     save_confusion_matrix_plot(conf_matrix, f'{dataset_name} - {model_name}',
-                               f'{dataset_name.lower()}-{model_name}.png')
+                               f'{dataset_name.lower()}-{model_name}-confusion_matrix.png')
     classification_rep = classification_report(y_test, y_pred, target_names=y_test.unique(), output_dict=True)
     accuracy = accuracy_score(y_test, y_pred)
     macro_f1 = classification_rep['macro avg']['f1-score']
